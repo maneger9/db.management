@@ -1,184 +1,163 @@
-.counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
+/* ==========================================
+   1. 디자인 토큰 (CSS 변수) 정의
+   ========================================== */
+:root {
+    /* --- 키비주얼 메인 색상 3가지 --- */
+    --color-primary: #134686;     /* [1] 메인 브랜드 컬러 (예: 포인트/헤더/주요 버튼) */
+    --color-secondary: #10B981;   /* [2] 서브 포인트 컬러 (예: 태그/완료 표시/보조 버튼) */
+    --color-accent: #F59E0B;      /* [3] 강조 컬러 (예: 별점/중요 일기 표시/경고) */
 
-  &:hover {
-    border-color: var(--accent-border);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
+    /* --- 바탕 및 기본 텍스트 색상 --- */
+    --color-bg: #F8FAFC;          /* 앱 전체 배경색 */
+    --color-card: #FFFFFF;        /* 카드/다이어리 아이템 배경색 */
+    --color-text-main: #0F172A;   /* 기본 글자색 (진한 다크) */
+    --color-text-sub: #64748B;    /* 보조 글자색 (날짜, 설명글 등) */
+    --color-border: #E2E8F0;      /* 테두리 선 색상 */
+
+    /* --- 글자 크기 (Font Sizes) --- */
+    --font-xs: 0.75rem;   /* 12px : 날짜, 태그, 작은 부가정보 */
+    --font-sm: 0.875rem;  /* 14px : 보조 설명, 부제목 */
+    --font-base: 1rem;    /* 16px : 다이어리 본문 기본 크기 */
+    --font-lg: 1.125rem;  /* 18px : 강조 본문, 입력창 텍스트 */
+    --font-xl: 1.25rem;   /* 20px : 일기 제목, 카드 헤더 */
+    --font-2xl: 1.5rem;   /* 24px : 섹션 타이틀 */
+    --font-3xl: 2rem;     /* 32px : 메인 페이지 타이틀 */
+
+    /* --- 폰트 두께 --- */
+    --weight-regular: 400;
+    --weight-medium: 500;
+    --weight-bold: 700;
 }
 
-.hero {
-  position: relative;
+.col_primary {
+    color: #134686;
+}
 
-  .base,
-  .framework,
-  .vite {
-    inset-inline: 0;
+.bg_col {
+    background-color: #134686;
+}
+
+.col_secondary {
+    color: #10B981;
+}
+
+.bg_sec {
+    background-color: #10B981;
+}
+
+.col_accent {
+    color: #64748B;
+}
+
+.bg_acc {
+    background-color: #F59E0B;
+}
+
+
+/* ==========================================
+   2. 기본 스타일 초기화 (Reset)
+   ========================================== */
+#root {
+    max-width: 100%;
     margin: 0 auto;
-  }
-
-  .base {
-    width: 170px;
-    position: relative;
-    z-index: 0;
-  }
-
-  .framework,
-  .vite {
-    position: absolute;
-  }
-
-  .framework {
-    z-index: 1;
-    top: 34px;
-    height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
-  }
-
-  .vite {
-    z-index: 0;
-    top: 107px;
-    height: 26px;
-    width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
-  }
+    padding: 2rem;
+    text-align: left;
 }
 
-#center {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-  place-content: center;
-  place-items: center;
-  flex-grow: 1;
-
-  @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
-  }
+body {
+    background-color: var(--color-bg);
+    color: var(--color-text-main);
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: var(--font-base);
+    font-weight: var(--weight-regular);
+    line-height: 1.6;
 }
 
-#next-steps {
-  display: flex;
-  border-top: 1px solid var(--border);
-  text-align: left;
+/* ==========================================
+   3. 다이어리 공통 유틸리티 클래스 (App.jsx에서 사용)
+   ========================================== */
 
-  & > div {
-    flex: 1 1 0;
-    padding: 32px;
-    @media (max-width: 1024px) {
-      padding: 24px 20px;
-    }
-  }
-
-  .icon {
-    margin-bottom: 16px;
-    width: 22px;
-    height: 22px;
-  }
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    text-align: center;
-  }
+/* 제목 스타일 */
+.diary-title-main {
+    font-size: var(--font-lg);
+    font-weight: var(--weight-bold);
+    color: var(--color-primary);
+    margin-bottom: 0.5rem;
 }
 
-#docs {
-  border-right: 1px solid var(--border);
-
-  @media (max-width: 1024px) {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
+.diary-title-sub {
+    font-size: var(--font-2xl);
+    font-weight: var(--weight-bold);
+    color: var(--color-text-main);
 }
 
-#next-steps ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  gap: 8px;
-  margin: 32px 0 0;
+/* 다이어리 카드 박스 */
+.diary-card {
+    background-color: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
 
-  .logo {
-    height: 18px;
-  }
+/* 날짜 및 부가 텍스트 */
+.diary-date {
+    font-size: var(--font-sm);
+    color: var(--color-text-sub);
+    font-weight: var(--weight-medium);
+}
 
-  a {
-    color: var(--text-h);
-    font-size: 16px;
-    border-radius: 6px;
-    background: var(--social-bg);
+/* 키비주얼 버튼 스타일 */
+.btn-primary {
+    background-color: var(--color-primary);
+    color: #FFFFFF;
+    font-size: var(--font-base);
+    font-weight: var(--weight-medium);
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn-secondary {
+    background-color: var(--color-secondary);
+    font-size: var(--font-base);
+    font-weight: var(--weight-medium);
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.button-wrapper {
     display: flex;
-    padding: 6px 12px;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: box-shadow 0.3s;
-
-    &:hover {
-      box-shadow: var(--shadow);
-    }
-    .button-icon {
-      height: 18px;
-      width: 18px;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    li {
-      flex: 1 1 calc(50% - 8px);
-    }
-
-    a {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-  }
+    justify-content: flex-end; /* 오른쪽 정렬 */
 }
 
-#spacer {
-  height: 88px;
-  border-top: 1px solid var(--border);
-  @media (max-width: 1024px) {
-    height: 48px;
-  }
+/* 기존 버튼 스타일에서 flex 관련 속성은 제거합니다 */
+.btn-set {
+    background-color: var(--color-primary);
+    font-size: var(--font-sm);
+    font-weight: var(--weight-medium);
+    padding: 0.5rem 0.5rem;
+    margin-bottom: 0.5rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
 }
 
-.ticks {
-  position: relative;
-  width: 100%;
+.btn-primary:hover, .btn-secondary:hover {
+    opacity: 0.9;
+}
 
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
-  }
-
-  &::before {
-    left: 0;
-    border-left-color: var(--border);
-  }
-  &::after {
-    right: 0;
-    border-right-color: var(--border);
-  }
+/* 중요 표시 뱃지 / 강조 태그 */
+.tag-accent {
+    background-color: var(--color-accent);
+    color: #FFFFFF;
+    font-size: var(--font-xs);
+    font-weight: var(--weight-bold);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
 }
