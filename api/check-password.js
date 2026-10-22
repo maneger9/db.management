@@ -15,6 +15,9 @@ export default function handler(req, res) {
     const { password } = req.body;
     // Vercel 대시보드(Settings > Environment Variables)에 등록된 비밀번호를 가져옴
     const DIARY_PASSWORD = process.env.DIARY_PASSWORD;
+    console.log("현재 설정된 비밀번호:", process.env.DIARY_PASSWORD);
+    console.log("사용자가 입력한 비밀번호:", password);
+    console.log("사용자가 입력한 비밀번호 DIARY_PASSWORD :", DIARY_PASSWORD);
 
     if (password === DIARY_PASSWORD) {
         return res.status(200).json({ success: true, message: '비밀번호 일치' });
