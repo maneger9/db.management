@@ -12,7 +12,7 @@ app.use(express.json()); // JSON 요청 바디 파싱
 const DIARY_PASSWORD = process.env.DIARY_PASSWORD;
 
 // 비밀번호 검증 API
-app.post('/api/login', (req, res) => {
+app.post('/api/check-password', (req, res) => {
     const { password } = req.body;
 
     if (password === DIARY_PASSWORD) {

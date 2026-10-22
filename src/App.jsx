@@ -24,7 +24,7 @@ function App() {
         setErrorMessage('');
 
         try {
-            const response = await fetch('/api/login', {
+            const response = await fetch('/api/check-password', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
