@@ -1,134 +1,118 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import RegisterUser from './RegisterUser';
 
 function Settings() {
-    // 1. 인물별 전체 다이어리 데이터 (경로, 상태, 날짜, 내용 포함)
-    const [userDataMap, setUserDataMap] = useState([
-        {
-            id: 1,
-            name: '김철수',
-            phone: '010-1234-5678',
-            path: '지인 추천',
-            status: '활성',
-            diaries: [
-                { id: 101, date: '2026-10-18', content: '철수와 함께 카페에서 리액트 공부 완.' },
-                { id: 102, date: '2026-10-15', content: 'Github와 Vercel 배포 연동 방법 공유함.' },
-                { id: 103, date: '2026-10-10', content: '프로젝트 초기 세팅 완료 및 커피 한잔.' }
-            ]
-        },
-        {
-            id: 2,
-            name: '영희',
-            phone: '010-9876-5432',
-            path: '웹 검색',
-            status: '활성',
-            diaries: [
-                { id: 201, date: '2026-10-17', content: '다이어리 UI 디자인 스케치 구상.' },
-                { id: 202, date: '2026-10-12', content: 'CSS 변수 디자인 토큰 정리.' }
-            ]
-        },
-        {
-            id: 3,
-            name: '민수',
-            phone: '010-5555-4444',
-            path: '기타',
-            status: '대기',
-            diaries: [
-                { id: 301, date: '2026-10-16', content: 'IntelliJ 툴 단축키 및 연동 확인.' }
-            ]
-        }
-    ]);
+    const [userDataMap, setUserDataMap] = useState([]);
+    const [loading, setLoading] = useState(false);
 
-    // 2. 상단 인물/목록 검색 조건 상태 관리
-    const [nameSearch, setNameSearch] = useState('');           // 이름 (input)
-    const [phoneSearch, setPhoneSearch] = useState('');         // 연락처 (input)
-    const [pathSelect, setPathSelect] = useState('ALL');        // 경로 (selectBox)
-    const [statusSelect, setStatusSelect] = useState('ALL');    // 상태 (selectBox)
+    const [nameSearch, setNameSearch] = useState('');
+    const [phoneSearch, setPhoneSearch] = useState('');
+    const [pathSelect, setPathSelect] = useState('ALL');
+    const [statusSelect, setStatusSelect] = useState('ALL');
 
-    // 3. 우측 기록(다이어리) 내부 검색 조건 상태 관리
-    const [startDate, setStartDate] = useState('');             // 시작일 (input date)
-    const [endDate, setEndDate] = useState('');                 // 종료일 (input date)
-    const [contentSearch, setContentSearch] = useState('');     // 내용 (input text)
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const [contentSearch, setContentSearch] = useState('');
 
-    // 4. 현재 선택된 인물 상태 (기본값: 첫 번째 인물)
-    const [selectedUser, setSelectedUser] = useState(userDataMap[0]);
+    const [selectedUser, setSelectedUser] = useState(null);
 
-    // 상단 검색 조건(이름, 연락처, 경로, 상태)에 따른 인물 목록 필터링
-    const filteredUsers = userDataMap.filter(user => {
-        const matchName = nameSearch
-            ? user.name.toLowerCase().includes(nameSearch.toLowerCase())
-            : true;
-        const matchPhone = phoneSearch
-            ? user.phone.includes(phoneSearch)
-            : true;
-        const matchPath = pathSelect === 'ALL' ? true : user.path === pathSelect;
-        const matchStatus = statusSelect === 'ALL' ? true : user.status === statusSelect;
+    // 화면 전환 상태 관리 (true면 등록 화면, false면 메인 화면)
+    const [isRegisterOpen, setIsRegisterOpen] = useState(false);
 
-        return matchName && matchPhone && matchPath && matchStatus;
-    });
+    useEffect(() => {
+        // 등록 화면일 때는 데이터를 불러올 필요가 없으므로 최적화 차단 가능
+        if (isRegisterOpen) return;
 
-    // 인물 선택 함수
+        const fetchUserData = async () => {
+            setLoading(true);
+            try {
+                const params = new URLSearchParams();
+                if (nameSearch) params.append('name', nameSearch);
+                if (phoneSearch) params.append('phone', phoneSearch);
+                if (pathSelect !== 'ALL') params.append('path', pathSelect);
+                if (statusSelect !== 'ALL') params.append('status', statusSelect);
+                if (startDate) params.append('startDate', startDate);
+                if (endDate) params.append('endDate', endDate);
+                if (contentSearch) params.append('content', contentSearch);
+
+                const response = await fetch(`/api/users?${params.toString()}`);
+                const result = await response.json();
+
+                setUserDataMap(result);
+
+                if (result.length > 0) {
+                    const exists = result.find(user => selectedUser && user.id === selectedUser.id);
+                    if (!exists) {
+                        setSelectedUser(result[0]);
+                    }
+                } else {
+                    setSelectedUser(null);
+                }
+            } catch (error) {
+                console.error('데이터를 불러오는 중 오류가 발생했습니다:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUserData();
+    }, [nameSearch, phoneSearch, pathSelect, statusSelect, startDate, endDate, contentSearch, isRegisterOpen]);
+
     const handleUserClick = (user) => {
         setSelectedUser(user);
     };
 
-    // 선택된 인물의 다이어리 기록 중 우측 검색 조건(날짜 범위, 내용)에 맞는 항목 필터링
-    const filteredDiaries = selectedUser ? selectedUser.diaries.filter(diary => {
-        const matchStart = startDate ? diary.date >= startDate : true;
-        const matchEnd = endDate ? diary.date <= endDate : true;
-        const matchContent = contentSearch
-            ? diary.content.toLowerCase().includes(contentSearch.toLowerCase())
-            : true;
-
-        return matchStart && matchEnd && matchContent;
-    }) : [];
+    // 💡 핵심: 컴포넌트 최상단이 아니라, 조건에 따라 렌더링할 뷰를 return 안에서 분기 처리합니다.
+    if (isRegisterOpen) {
+        return (
+            <RegisterUser
+                onCancel={() => setIsRegisterOpen(false)}
+                onSuccess={() => {
+                    setIsRegisterOpen(false); // 등록 성공 시 메인으로 복귀
+                    // 필요시 데이터 새로고침 트리거 추가 가능
+                }}
+            />
+        );
+    }
 
     return (
         <div>
-            {/* 1. [상단] 인물 목록 검색 조건 (이름, 연락처, 경로, 상태) */}
-            <div className="diary-card" style={{ padding: '1.25rem', marginBottom: '0.5rem', backgroundColor: '#F8FAFC' }}>
-                <div style={{ fontSize: 'var(--font-xs)', fontWeight: 'var(--weight-bold)', color: 'var(--color-text-sub)', marginBottom: '0.75rem' }}>
-                    검색
-                </div>
+            {/* 1. [상단] 인물 목록 검색 조건 */}
+            <div className="diary-card search-box-top">
+                <div className="search-title">검색</div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem' }}>
-
-                    {/* 이름 (input) */}
-                    <div>
-                        <label style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-sub)', marginBottom: '0.3rem' }}>
-                            이름
-                        </label>
+                <div className="search-grid-top">
+                    {/* 이름 */}
+                    <div className="form-group">
+                        <label>이름</label>
                         <input
                             type="text"
                             placeholder="이름 입력"
                             value={nameSearch}
                             onChange={(e) => setNameSearch(e.target.value)}
-                            style={inputStyle}
+                            className="form-input"
                         />
                     </div>
 
-                    {/* 연락처 (input) */}
-                    <div>
-                        <label style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-sub)', marginBottom: '0.3rem' }}>
-                            연락처
-                        </label>
+                    {/* 연락처 */}
+                    <div className="form-group">
+                        <label>연락처</label>
                         <input
                             type="text"
                             placeholder="연락처 입력"
                             value={phoneSearch}
                             onChange={(e) => setPhoneSearch(e.target.value)}
-                            style={inputStyle}
+                            className="form-input"
                         />
                     </div>
 
-                    {/* 경로 (selectBox) */}
-                    <div>
-                        <label style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-sub)', marginBottom: '0.3rem' }}>
-                            경로
-                        </label>
+                    {/* 경로 */}
+                    <div className="form-group">
+                        <label>경로</label>
                         <select
                             value={pathSelect}
                             onChange={(e) => setPathSelect(e.target.value)}
-                            style={selectStyle}
+                            className="form-select"
                         >
                             <option value="ALL">전체 경로</option>
                             <option value="광고">광고</option>
@@ -140,15 +124,13 @@ function Settings() {
                         </select>
                     </div>
 
-                    {/* 상태 (selectBox) */}
-                    <div>
-                        <label style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-sub)', marginBottom: '0.3rem' }}>
-                            상태
-                        </label>
+                    {/* 상태 */}
+                    <div className="form-group">
+                        <label>상태</label>
                         <select
                             value={statusSelect}
-                            onChange={(e) => setStatusSelect(e.target.value)}
-                            style={selectStyle}
+                            onChange={(e) => statusSelect(e.target.value)}
+                            className="form-select"
                         >
                             <option value="ALL">전체 상태</option>
                             <option value="부재">부재</option>
@@ -158,53 +140,41 @@ function Settings() {
                             <option value="계약">계약</option>
                         </select>
                     </div>
-
                 </div>
             </div>
 
             {/* 버튼 영역 */}
             <div className="button-wrapper">
-                <button className="btn-set">
-                    DB 등록
-                </button>
+                <button className="btn-set" onClick={() => setIsRegisterOpen(true)}>DB 등록</button>
             </div>
 
-            {/* 2. [하단] 2단 영역 (왼쪽: 인물 목록 / 오른쪽: 기록 및 기록 검색) */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.5rem', alignItems: 'start' }}>
+            {/* 2. [하단] 2단 영역 */}
+            <div className="layout-grid">
 
                 {/* [왼쪽] 인물 목록 영역 */}
-                <div className="diary-card" style={{ padding: '1rem' }}>
-                    <h3 style={{ fontSize: 'var(--font-base)', marginBottom: '0.75rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>
-                        목록 ({filteredUsers.length}건)
+                <div className="diary-card user-list-container">
+                    <h3 className="user-list-title">
+                        목록 ({userDataMap.length}건)
                     </h3>
 
-                    <div style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', maxHeight: '480px' }}>
-                        {filteredUsers.length > 0 ? (
-                            filteredUsers.map((user) => {
+                    <ul className="user-list-ul">
+                        {loading ? (
+                            <li className="empty-message">불러오는 중...</li>
+                        ) : userDataMap.length > 0 ? (
+                            userDataMap.map((user) => {
                                 const isSelected = selectedUser && selectedUser.id === user.id;
                                 return (
-                                    <li key={user.id}>
+                                    <li key={user.id} style={{ marginBottom: '0.5rem' }}>
                                         <button
                                             onClick={() => handleUserClick(user)}
-                                            style={{
-                                                width: '100%',
-                                                textAlign: 'left',
-                                                padding: '0.75rem',
-                                                borderRadius: '8px',
-                                                border: isSelected ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
-                                                backgroundColor: isSelected ? '#EEF2FF' : '#FFFFFF',
-                                                color: isSelected ? 'var(--color-primary)' : 'var(--color-text-main)',
-                                                fontWeight: isSelected ? 'var(--weight-bold)' : 'var(--weight-regular)',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s'
-                                            }}
+                                            className={`user-item-btn ${isSelected ? 'selected' : ''}`}
                                         >
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div className="user-item-row">
                                                 <span style={{ fontSize: 'var(--font-base)' }}>{user.name}</span>
-                                                <span style={{ fontSize: 'var(--font-xs)' , color: 'var(--color-text-sub)' }}>{user.status}</span>
+                                                <span style={{ fontSize: 'var(--font-xs)', color: 'var(--color-text-sub)' }}>{user.status}</span>
                                                 <span style={{ fontSize: 'var(--font-xs)', color: 'var(--color-primary)' }}>{user.path}</span>
                                             </div>
-                                            <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-text-sub)', marginTop: '0.2rem' }}>
+                                            <div className="user-item-phone">
                                                 {user.phone}
                                             </div>
                                         </button>
@@ -212,183 +182,95 @@ function Settings() {
                                 );
                             })
                         ) : (
-                            <li style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--color-text-sub)', fontSize: 'var(--font-xs)' }}>
+                            <li className="empty-message">
                                 검색 조건에 해당 인물이 없습니다.
                             </li>
                         )}
-                    </div>
+                    </ul>
                 </div>
 
                 {/* [오른쪽] 기록 내부 검색 조건 + 상세 기록 영역 */}
-                <div className="diary-card" style={{padding: '1rem'}}>
-                    {/* 헤더 */}
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        borderBottom: '2px solid var(--color-border)',
-                        marginBottom: '0.5rem'
-                    }}>
-                        <h3 className={'col_primary'} style={{fontSize: 'var(--font-base)'}}>
+                <div className="diary-card diary-right-container">
+                    <div className="diary-header-box">
+                        <h3 className="col_primary" style={{ fontSize: 'var(--font-base)' }}>
                             {selectedUser ? selectedUser.name : '-'} 님 /
                             유입경로: {selectedUser ? selectedUser.path : "-"} /
                             상태: {selectedUser ? selectedUser.status : "-"}
                         </h3>
-                        <h3 className={'col_accent'} style={{fontSize: 'var(--font-xs)'}}>
-                            {filteredDiaries.length}건
+                        <h3 className="col_accent" style={{ fontSize: 'var(--font-xs)' }}>
+                            {selectedUser && selectedUser.diaries ? selectedUser.diaries.length : 0}건
                         </h3>
                     </div>
 
                     <div className="button-wrapper">
-                        <button className="btn-set">
-                            추가
-                        </button>
+                        <button className="btn-set">추가</button>
                     </div>
 
-
-                    {/* 💡 [기록 내부 검색 조건] 날짜(input 2개) + 내용(input) */}
-                    <div style={{
-                        backgroundColor: '#F8FAFC',
-                        padding: '1rem',
-                        borderRadius: '8px',
-                        border: '1px solid var(--color-border)',
-                        marginBottom: '1rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.75rem'
-                    }}>
-                        <div style={{
-                            fontSize: 'var(--font-xs)',
-                            fontWeight: 'var(--weight-bold)',
-                            color: 'var(--color-text-sub)'
-                        }}>
+                    {/* [기록 내부 검색 조건] */}
+                    <div className="diary-search-box">
+                        <div style={{ fontSize: 'var(--font-xs)', fontWeight: 'var(--weight-bold)', color: 'var(--color-text-sub)' }}>
                             검색
                         </div>
 
-                        <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: '1.2fr 1fr',
-                            gap: '0.75rem',
-                            alignItems: 'end'
-                        }}>
-                            {/* 날짜 범위 (input 2개) */}
-                            <div>
-                                <label style={{
-                                    display: 'block',
-                                    fontSize: '11px',
-                                    color: 'var(--color-text-sub)',
-                                    marginBottom: '0.3rem'
-                                }}>
-                                    날짜 범위
-                                </label>
-                                <div style={{display: 'flex', alignItems: 'center', gap: '0.3rem'}}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '0.75rem', alignItems: 'end' }}>
+                            {/* 날짜 범위 */}
+                            <div className="form-group">
+                                <label>날짜 범위</label>
+                                <div className="diary-date-wrapper">
                                     <input
                                         type="date"
                                         value={startDate}
                                         onChange={(e) => setStartDate(e.target.value)}
-                                        style={inputStyle}
+                                        className="form-input"
                                     />
                                     <span>~</span>
                                     <input
                                         type="date"
                                         value={endDate}
                                         onChange={(e) => setEndDate(e.target.value)}
-                                        style={inputStyle}
+                                        className="form-input"
                                     />
                                 </div>
                             </div>
 
-                            {/* 내용 검색 (input) */}
-                            <div>
-                                <label style={{
-                                    display: 'block',
-                                    fontSize: '11px',
-                                    color: 'var(--color-text-sub)',
-                                    marginBottom: '0.3rem'
-                                }}>
-                                    내용 검색
-                                </label>
+                            {/* 내용 검색 */}
+                            <div className="form-group">
+                                <label>내용 검색</label>
                                 <input
                                     type="text"
                                     placeholder="상담 내용"
                                     value={contentSearch}
                                     onChange={(e) => setContentSearch(e.target.value)}
-                                    style={inputStyle}
+                                    className="form-input"
                                 />
                             </div>
-
                         </div>
                     </div>
 
                     {/* 기록 내용 출력 목록 */}
-                    <div style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.75rem',
-                        maxHeight: '350px',
-                        overflowY: 'auto'
-                    }}>
-                        {filteredDiaries.length > 0 ? (
-                            filteredDiaries.map((diary) => (
-                                <div
-                                    key={diary.id}
-                                    style={{
-                                        padding: '1rem',
-                                        borderRadius: '8px',
-                                        backgroundColor: '#FFFFFF',
-                                        border: '1px solid var(--color-border)'
-                                    }}
-                                >
-                                    <div style={{
-                                        fontSize: 'var(--font-xs)',
-                                        color: 'var(--color-text-sub)',
-                                        marginBottom: '0.3rem',
-                                        fontWeight: 'var(--weight-medium)'
-                                    }}>
+                    <div className="diary-items-list">
+                        {selectedUser && selectedUser.diaries && selectedUser.diaries.length > 0 ? (
+                            selectedUser.diaries.map((diary) => (
+                                <div key={diary.id} className="diary-item-card">
+                                    <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-text-sub)', marginBottom: '0.3rem', fontWeight: 'var(--weight-medium)' }}>
                                         📅 {diary.date}
                                     </div>
-                                    <div style={{fontSize: 'var(--font-base)', color: 'var(--color-text-main)'}}>
+                                    <div style={{ fontSize: 'var(--font-base)', color: 'var(--color-text-main)' }}>
                                         {diary.content}
                                     </div>
                                 </div>
                             ))
                         ) : (
-                            <div style={{textAlign: 'center', padding: '2rem', color: 'var(--color-text-sub)'}}>
+                            <div className="empty-message">
                                 조건에 일치하는 기록이 없습니다.
                             </div>
                         )}
                     </div>
-
                 </div>
 
             </div>
         </div>
     );
 }
-
-// 인라인 스타일 공통 변수
-const inputStyle = {
-    width: '100%',
-    marginRight: '1rem',
-    padding: '0.5rem',
-    fontSize: 'var(--font-sm)',
-    color: 'var(--color-text-main)',
-    backgroundColor: '#FFFFFF',
-    borderRadius: '6px',
-    border: '1px solid var(--color-border)',
-    outline: 'none',
-};
-
-const selectStyle = {
-    width: '100%',
-    padding: '0.5rem',
-    fontSize: 'var(--font-sm)',
-    color: 'var(--color-text-main)',
-    backgroundColor: '#FFFFFF',
-    borderRadius: '6px',
-    border: '1px solid var(--color-border)',
-    outline: 'none',
-    cursor: 'pointer'
-};
 
 export default Settings;
