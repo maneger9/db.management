@@ -7,7 +7,7 @@
     "dev:front": "vite",
     "dev:back": "vercel dev",
     "dev": "concurrently \"npm run dev:front\" \"npm run dev:back\"",
-    "build": "npx prisma generate && npm run build",
+    "build": "npx prisma generate && vite build",
     "postinstall": "prisma generate",
     "lint": "eslint .",
     "preview": "vite preview"
