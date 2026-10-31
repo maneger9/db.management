@@ -24,7 +24,6 @@ dist-ssr
 *.sw?
 
 api/.env
-/src/generated
 
 .vercel
 .env*
