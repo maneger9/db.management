@@ -24,7 +24,7 @@ dist-ssr
 *.sw?
 
 api/.env
-/src/generated/prisma
+/src/generated
 
 .vercel
 .env*
