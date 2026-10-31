@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model user_db {
+  seq         Int         @id @default(autoincrement())
+  name        String?     @db.VarChar(255)
+  phone       String?
+  into_date   String?     @db.VarChar(255)
+  into_path   String?     @db.VarChar(255)
+  notice_car  String?     @db.VarChar(255)
+  step        String?     @db.VarChar(255)
+  del_yn      String?     @default("N") @db.VarChar(10)
+  create_date DateTime?   @default(now()) @db.Timestamp(6)
+  update_date DateTime?   @db.Timestamp(6)
+  del_date    DateTime?   @db.Timestamp(6)
+  user_note   user_note[]
+}
+
+model user_note {
+  seq         Int       @id @default(autoincrement())
+  user_db_seq Int
+  tell_date   String?   @db.VarChar(255)
+  content     String?
+  del_yn      String?   @default("N") @db.VarChar(10)
+  create_date DateTime? @default(now()) @db.Timestamp(6)
+  update_date DateTime? @db.Timestamp(6)
+  del_date    DateTime? @db.Timestamp(6)
+  call_date   DateTime? @db.Timestamp(6)
+  user        user_db   @relation(fields: [user_db_seq], references: [seq], onDelete: Cascade)
+}
