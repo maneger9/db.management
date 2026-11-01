@@ -65,7 +65,7 @@ function App() {
                 minHeight: '80vh'
             }}>
                 <div className="diary-card" style={{ width: '100%', maxWidth: '500px', textAlign: 'center' }}>
-                    <h1 className="diary-title-main" style={{ fontSize: 'var(--font-2xl)' }}>비밀번호를 입력해야 진입할 수 있습니다.</h1>
+                    <h1 className="diary-title-main" style={{ fontSize: 'var(--font-2xl)' }}>비밀번호 입력</h1>
 
                     <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                         <input

@@ -6,7 +6,6 @@ function Settings() {
     const [loading, setLoading] = useState(false);
 
     const [nameSearch, setNameSearch] = useState('');
-    const [phoneSearch, setPhoneSearch] = useState('');
     const [pathSelect, setPathSelect] = useState('ALL');
     const [statusSelect, setStatusSelect] = useState('ALL');
 
@@ -28,7 +27,6 @@ function Settings() {
             try {
                 const params = new URLSearchParams();
                 if (nameSearch) params.append('name', nameSearch);
-                if (phoneSearch) params.append('phone', phoneSearch);
                 if (pathSelect !== 'ALL') params.append('path', pathSelect);
                 if (statusSelect !== 'ALL') params.append('status', statusSelect);
                 if (startDate) params.append('startDate', startDate);
@@ -56,7 +54,7 @@ function Settings() {
         };
 
         fetchUserData();
-    }, [nameSearch, phoneSearch, pathSelect, statusSelect, startDate, endDate, contentSearch, isRegisterOpen]);
+    }, [nameSearch, pathSelect, statusSelect, startDate, endDate, contentSearch, isRegisterOpen]);
 
     const handleUserClick = (user) => {
         setSelectedUser(user);
@@ -79,8 +77,6 @@ function Settings() {
         <div>
             {/* 1. [상단] 인물 목록 검색 조건 */}
             <div className="diary-card search-box-top">
-                <div className="search-title">검색</div>
-
                 <div className="search-grid-top">
                     {/* 이름 */}
                     <div className="form-group">
@@ -90,18 +86,6 @@ function Settings() {
                             placeholder="이름 입력"
                             value={nameSearch}
                             onChange={(e) => setNameSearch(e.target.value)}
-                            className="form-input"
-                        />
-                    </div>
-
-                    {/* 연락처 */}
-                    <div className="form-group">
-                        <label>연락처</label>
-                        <input
-                            type="text"
-                            placeholder="연락처 입력"
-                            value={phoneSearch}
-                            onChange={(e) => setPhoneSearch(e.target.value)}
                             className="form-input"
                         />
                     </div>

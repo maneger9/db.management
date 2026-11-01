@@ -13,29 +13,26 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { name, phone, path, status, startDate, endDate, content } = req.query;
+        const { name, path, status, startDate, endDate, content } = req.query;
 
         // 1. user_db 검색 조건 설정
         const userWhere = {};
         if (name) {
             userWhere.name = { contains: name, mode: 'insensitive' }; // 대소문자 무시 검색
         }
-        if (phone) {
-            userWhere.phone = { contains: phone };
-        }
         if (path) {
-            userWhere.path = path;
+            userWhere.into_path = path;
         }
         if (status) {
-            userWhere.status = status;
+            userWhere.step = status;
         }
 
         // 2. user_note (다이어리) 내부 검색 조건 설정
         const noteWhere = {};
         if (startDate || endDate) {
-            noteWhere.date = {};
-            if (startDate) noteWhere.date.gte = startDate; // 이상
-            if (endDate) noteWhere.date.lte = endDate;     // 이하
+            noteWhere.tell_date = {};
+            if (startDate) noteWhere.tell_date.gte = startDate; // 이상
+            if (endDate) noteWhere.tell_date.lte = endDate;     // 이하
         }
         if (content) {
             noteWhere.content = { contains: content, mode: 'insensitive' };
@@ -45,17 +42,14 @@ export default async function handler(req, res) {
         const users = await prisma.user_db.findMany({
             where: userWhere,
         });
-
+console.log((users))
         // 프론트엔드가 기존에 사용하던 구조(diaries 이름)로 매핑해서 전달
         const formattedResult = users.map(user => ({
-            id: user.id,
             name: user.name,
-            phone: user.phone,
-            path: user.path,
-            status: user.status,
+            path: user.into_path,
+            status: user.step,
             diaries: user.user_note.map(note => ({
-                id: note.id,
-                date: note.date,
+                date: note.tell_date,
                 content: note.content
             }))
         }));
