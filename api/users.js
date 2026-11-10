@@ -14,7 +14,7 @@ export default async function handler(req, res) {
 
     try {
         const { name, path, status, startDate, endDate, content } = req.query;
-
+console.log(req.query);
         // 1. user_db 검색 조건 설정
         const userWhere = {};
         if (name) {
@@ -42,13 +42,13 @@ export default async function handler(req, res) {
         const users = await prisma.user_db.findMany({
             where: userWhere,
         });
-console.log((users))
+
         // 프론트엔드가 기존에 사용하던 구조(diaries 이름)로 매핑해서 전달
         const formattedResult = users.map(user => ({
             name: user.name,
             path: user.into_path,
             status: user.step,
-            diaries: user.user_note.map(note => ({
+            diaries: (user.user_note || []).map(note => ({
                 date: note.tell_date,
                 content: note.content
             }))

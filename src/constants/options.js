@@ -1,5 +1,6 @@
 // 유입경로 옵션
 export const PATH_OPTIONS = [
+    { value: '', label: '전체' },
     { value: '01', label: '광고' },
     { value: '02', label: '기존 DB' },
     { value: '03', label: '당근' },
@@ -11,6 +12,7 @@ export const PATH_OPTIONS = [
 
 // 상담단계 옵션
 export const STATUS_OPTIONS = [
+    { value: '', label: '전체' },
     { value: '01', label: '부재' },
     { value: '02', label: '재통' },
     { value: '03', label: '관리' },
