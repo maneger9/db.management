@@ -14,9 +14,7 @@ function Settings() {
     const [endDate, setEndDate] = useState('');
     const [contentSearch, setContentSearch] = useState('');
 
-    // const [selectedUser, setSelectedUser] = useState(null);
-    const [selectedPathValue, setSelectedPathValue] = useState(PATH_OPTIONS[0].value);
-    const [selectedStatusValue, setSelectedStatusValue] = useState(STATUS_OPTIONS[0].value);
+    const [selectedUser, setSelectedUser] = useState(null);
 
     // 화면 전환 상태 관리 (true면 등록 화면, false면 메인 화면)
     const [isRegisterOpen, setIsRegisterOpen] = useState(false);

@@ -14,7 +14,7 @@ export default async function handler(req, res) {
 
     try {
         const { name, path, status, startDate, endDate, content } = req.query;
-console.log(req.query);
+
         // 1. user_db 검색 조건 설정
         const userWhere = {};
         if (name) {
