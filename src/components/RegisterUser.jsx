@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useRef, useState} from 'react';
 import { PATH_OPTIONS, STATUS_OPTIONS } from '../constants/options';
 
 function RegisterUser({ onCancel, onSuccess }) {
@@ -12,6 +12,9 @@ function RegisterUser({ onCancel, onSuccess }) {
         status: STATUS_OPTIONS[0].value  // 기본값 첫 번째 항목
     });
 
+    // 각 입력창을 제어하기 위한 ref 생성
+    const phoneInputRef = useRef(null);
+
     const [loading, setLoading] = useState(false);
 
     // 입력값 변경 핸들러
@@ -20,6 +23,31 @@ function RegisterUser({ onCancel, onSuccess }) {
         setFormData(prev => ({
             ...prev,
             [name]: value
+        }));
+    };
+
+    // 입력값 변경 핸들러
+    const handlePhoneChange = (e) => {
+        // 1. 입력된 값에서 숫자를 제외한 모든 문자 제거
+        const value = e.target.value.replace(/\D/g, '');
+        let formattedValue = '';
+
+        // 2. 길이에 따라 자동으로 하이픈(-) 조합
+        if (value.length < 4) {
+            formattedValue = value;
+        } else if (value.length < 8) {
+            formattedValue = `${value.slice(0, 3)}-${value.slice(3)}`;
+        } else if (value.length <= 11) {
+            formattedValue = `${value.slice(0, 3)}-${value.slice(3, 7)}-${value.slice(7, 11)}`;
+        } else {
+            // 11자리를 초과하면 11자리까지만 허용
+            formattedValue = `${value.slice(0, 3)}-${value.slice(3, 7)}-${value.slice(7, 11)}`;
+        }
+
+        // 3. formData 상태 업데이트
+        setFormData(prev => ({
+            ...prev,
+            phone: formattedValue
         }));
     };
 
@@ -32,9 +60,18 @@ function RegisterUser({ onCancel, onSuccess }) {
             return;
         }
 
+        // 1. 숫자만 추출
+        const cleanPhone = formData.phone.replace(/\D/g, '');
+
+        // 2. 자릿수 검증 (일반적으로 국내 전화번호는 9자리 ~ 11자리)
+        if (cleanPhone.length < 9 || cleanPhone.length > 11) {
+            alert('전화번호는 9~11자리여야 합니다.');
+            phoneInputRef.current.focus();
+            return;
+        }
+
         setLoading(true);
         try {
-            // 백엔드 API 호출 (연락처는 백엔드나 전송 직전 암호화 처리 진행)
             const response = await fetch('/api/saveUser', {
                 method: 'POST',
                 headers: {
@@ -51,7 +88,7 @@ function RegisterUser({ onCancel, onSuccess }) {
             if (onSuccess) onSuccess(); // 성공 시 목록으로 이동 또는 새로고침
         } catch (error) {
             console.error('Register Error:', error);
-            alert('등록에 실패했습니다.');
+            alert('이미 등록된 DB로 등록에 실패했습니다.');
         } finally {
             setLoading(false);
         }
@@ -71,6 +108,21 @@ function RegisterUser({ onCancel, onSuccess }) {
                         placeholder="이름을 입력하세요"
                         value={formData.name}
                         onChange={handleChange}
+                        className="form-input"
+                        required
+                    />
+                </div>
+
+                {/* 연락처 (저장 시 암호화 대상) */}
+                <div className="form-group">
+                    <label>연락처</label>
+                    <input
+                        type="tel"
+                        name="phone"
+                        ref={phoneInputRef}
+                        placeholder="010-0000-0000"
+                        value={formData.phone}
+                        onChange={handlePhoneChange}
                         className="form-input"
                         required
                     />
@@ -103,20 +155,6 @@ function RegisterUser({ onCancel, onSuccess }) {
                             </option>
                         ))}
                     </select>
-                </div>
-
-                {/* 연락처 (저장 시 암호화 대상) */}
-                <div className="form-group">
-                    <label>연락처</label>
-                    <input
-                        type="tel"
-                        name="phone"
-                        placeholder="010-0000-0000"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        className="form-input"
-                        required
-                    />
                 </div>
 
                 {/* 문의차량 */}

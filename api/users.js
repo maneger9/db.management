@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { decryptECB } from './utils/crypto.js';
 import pkg from 'pg';
 const { Pool } = pkg;
 
@@ -13,7 +14,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { name, path, status, startDate, endDate, content } = req.query;
+        const { name, path, status } = req.query;
 
         // 1. user_db 검색 조건 설정
         const userWhere = {};
@@ -27,17 +28,6 @@ export default async function handler(req, res) {
             userWhere.step = status;
         }
 
-        // 2. user_note (다이어리) 내부 검색 조건 설정
-        const noteWhere = {};
-        if (startDate || endDate) {
-            noteWhere.tell_date = {};
-            if (startDate) noteWhere.tell_date.gte = startDate; // 이상
-            if (endDate) noteWhere.tell_date.lte = endDate;     // 이하
-        }
-        if (content) {
-            noteWhere.content = { contains: content, mode: 'insensitive' };
-        }
-
         // 3. Prisma를 통한 조인 및 데이터 조회
         const users = await prisma.user_db.findMany({
             where: userWhere,
@@ -45,13 +35,11 @@ export default async function handler(req, res) {
 
         // 프론트엔드가 기존에 사용하던 구조(diaries 이름)로 매핑해서 전달
         const formattedResult = users.map(user => ({
+            seq: user.seq,
             name: user.name,
             path: user.into_path,
             status: user.step,
-            diaries: (user.user_note || []).map(note => ({
-                date: note.tell_date,
-                content: note.content
-            }))
+            phone: decryptECB(user.phone)
         }));
 
         return res.status(200).json(formattedResult);
